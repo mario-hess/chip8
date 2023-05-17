@@ -113,7 +113,7 @@ impl Instruction {
                 let vy = cpu.registers.get_vn(y);
                 let result = vx as u16 + vy as u16;
                 cpu.registers.set_vn(x, result as u8);
-                if result > 0xF {
+                if result > 0xFF {
                     cpu.registers.set_vn(0xF, 1);
                 } else {
                     cpu.registers.set_vn(0xF, 0);
@@ -126,6 +126,7 @@ impl Instruction {
                 let vx = cpu.registers.get_vn(x);
                 let vy = cpu.registers.get_vn(y);
                 let result = vx as i8 - vy as i8;
+                cpu.registers.set_vn(x, result as u8);
                 if result < 0 {
                     cpu.registers.set_vn(0xF, 0);
                 } else {
@@ -220,7 +221,6 @@ impl Instruction {
                 } else {
                     cpu.program_counter.next();
                 }
-                // cpu.program_counter.next();
             }
             _ => panic!("Invalid 0xExnn instruction"),
         }
