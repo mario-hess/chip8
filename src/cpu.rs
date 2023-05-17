@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use crate::instruction::Instruction;
 use crate::ppu::Ppu;
@@ -88,9 +88,8 @@ impl Cpu {
         self.delay_timer = value;
     }
     pub fn get_delay_timer(&self) -> u8 {
-        let diff = Instant::now() - self.timer_updated;
-        let ms = diff.as_millis();
-        let ticks = ms / 16;
+        let ms_diff = (Instant::now() - self.timer_updated).as_millis();
+        let ticks = ms_diff / 16;
 
         if ticks >= self.delay_timer as u128 {
             0

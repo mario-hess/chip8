@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use std::time::{Instant};
 
 mod cpu;
 mod instruction;
@@ -20,7 +20,7 @@ fn main() {
     let mut start_time = Instant::now();
 
     loop {
-        if Instant::now() - start_time > Duration::from_millis(2) {
+        if start_time.elapsed().as_millis() > 2 {
             machine.run();
             start_time = Instant::now();
         }
