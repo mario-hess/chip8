@@ -25,4 +25,5 @@ fn main() {
             start_time = Instant::now();
         }
     }
+
 }

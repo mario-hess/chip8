@@ -246,7 +246,7 @@ impl Instruction {
             0x15 => {
                 // FX15
                 // Sets the delay timer to VX
-                cpu.set_delay(cpu.registers.get_vn(x));
+                cpu.set_delay_timer(cpu.registers.get_vn(x));
                 cpu.program_counter.next();
             }
             0x18 => {

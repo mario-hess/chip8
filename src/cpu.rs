@@ -83,7 +83,7 @@ impl Cpu {
         }
     }
 
-    pub fn set_delay(&mut self, value: u8) {
+    pub fn set_delay_timer(&mut self, value: u8) {
         self.timer_updated = Instant::now();
         self.delay_timer = value;
     }
