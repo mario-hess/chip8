@@ -31,18 +31,25 @@ impl Cpu {
     }
 
     pub fn execute_instruction(&mut self, ram: &mut Ram, ppu: &mut Ppu) {
+        // All instructions are 2 bytes long and are stored most-significant-byte first.
         let instruction = ram.get_instruction(self.program_counter.get_value());
-        let (msbyte, addr, nn, n, x, y) = self.mask_opcodes(instruction);
 
-        /* debug
+        // msb  - the upper 4 bits of the instruction
+        // addr - the lowest 12 bits of the instruction
+        // nn   - the middle 8 bits of the instruction
+        // n    - the lowest 4 bits of the instruction
+        // x    - the lower 4 bits of the high byte of the instruction
+        // y    - the upper 4 bits of the low byte of the instruction
+        let (msb, addr, nn, n, x, y) = self.mask_opcodes(instruction);
+
+        // debug
         println!("Instruction: {:#X}", instruction);
         println!(
-            "msbyte: {:#X}, addr: {:#X}, nn: {:#X}, n: {:#X}, x: {:#X}, y: {:#X}",
-            msbyte, addr, nn, n, x, y
+            "msb: {:#X}, addr: {:#X}, nn: {:#X}, n: {:#X}, x: {:#X}, y: {:#X}",
+            msb, addr, nn, n, x, y
         );
-        */
 
-        match msbyte {
+        match msb {
             0x0 => Instruction::exec_0x0(self, nn, ppu),
             0x1 => Instruction::exec_0x1(self, addr),
             0x2 => Instruction::exec_0x2(self, addr),
@@ -70,7 +77,7 @@ impl Cpu {
         )
     }
 
-    pub fn debug_draw(&self, ppu: &mut Ppu) {
+    pub fn draw_pixels(&self, ppu: &mut Ppu) {
         for h in 0..32 {
             for w in 0..64 {
                 if ppu.display[h as usize][w as usize] == 0 {

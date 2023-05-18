@@ -6,6 +6,9 @@ impl Ram {
     pub fn new() -> Self {
         let mut data = [0; 4096];
 
+        // Programs may also refer to a group of sprites representing the hexadecimal
+        // digits 0 through F. These sprites are 5 bytes long, or 8x5 pixels.
+        // The data should be stored in the interpreter area of Chip-8 memory (0x000 to 0x1FF).
         let sprites: [[u8; 5]; 16] = [
             [0xF0, 0x90, 0x90, 0x90, 0xF0],
             [0x20, 0x60, 0x20, 0x20, 0x70],

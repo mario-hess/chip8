@@ -1,15 +1,19 @@
+use crate::ram::Ram;
+
 const SCREEN_WIDTH: usize = 64;
 const SCREEN_HEIGHT: usize = 32;
 const MASK_MSBIT: u8 = 0b1000_0000;
 
 pub struct Ppu {
     pub display: [[u8; SCREEN_WIDTH]; SCREEN_HEIGHT],
+    pub pixel_flipped: bool,
 }
 
 impl Ppu {
     pub fn new() -> Self {
         Self {
             display: [[0; SCREEN_WIDTH]; SCREEN_HEIGHT],
+            pixel_flipped: false,
         }
     }
 
@@ -25,34 +29,37 @@ impl Ppu {
         &mut self,
         vx: u8,
         vy: u8,
-        mut byte: u8,
-        height: u8,
+        i: u16,
+        sprite_height: u8,
         sprite_width: u8,
-    ) -> bool {
-        let mut x = vx as usize;
-        let mut y = (vy + height) as usize;
+        ram: &mut Ram,
+    ) {
+        for height in 0..sprite_height {
+            let mut byte = ram.read_byte(i + height as u16);
 
-        let mut pixel_flipped = false;
+            let mut x = vx as usize;
+            let mut y = (vy + height) as usize;
 
-        for _ in 0..sprite_width {
-            x %= SCREEN_WIDTH;
-            y %= SCREEN_HEIGHT;
+            self.pixel_flipped = false;
 
-            let bit = (byte & MASK_MSBIT) >> 7;
+            for _ in 0..sprite_width {
+                x %= SCREEN_WIDTH;
+                y %= SCREEN_HEIGHT;
 
-            if bit == 1 {
-                if self.display[y][x] == 1 {
-                    pixel_flipped = true;
-                    self.display[y][x] = 0
-                } else {
-                    self.display[y][x] = 1
+                let bit = (byte & MASK_MSBIT) >> 7;
+
+                if bit == 1 {
+                    if self.display[y][x] == 1 {
+                        self.pixel_flipped = true;
+                        self.display[y][x] = 0
+                    } else {
+                        self.display[y][x] = 1
+                    }
                 }
+
+                x += 1;
+                byte <<= 1;
             }
-
-            x += 1;
-            byte <<= 1;
         }
-
-        pixel_flipped
     }
 }

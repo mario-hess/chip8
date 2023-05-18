@@ -1,16 +1,16 @@
 use std::fs::File;
-use std::io::Read;
+use std::io::{Error, Read};
 
 pub struct Rom {
-    pub data: Vec<u8>
+    pub data: Vec<u8>,
 }
 
 impl Rom {
-    pub fn new(path: &str) -> Self {
-        let mut file = File::open(path).unwrap();
+    pub fn build(path: &str) -> Result<Self, Error> {
+        let mut file = File::open(path)?;
         let mut data = Vec::new();
-        file.read_to_end(&mut data).unwrap();
+        file.read_to_end(&mut data)?;
 
-        Self { data }
+        Ok(Self { data })
     }
 }

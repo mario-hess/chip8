@@ -139,7 +139,7 @@ impl Instruction {
                 // Store the value of register VY shifted right one bit in register VX
                 // Set register VF to the least significant bit prior to the shift
                 let vx = cpu.registers.get_vn(x);
-                let shifted_vx = vx >> 1; 
+                let shifted_vx = vx >> 1;
 
                 cpu.registers.set_vn(x, shifted_vx);
 
@@ -172,26 +172,19 @@ impl Instruction {
         let i = cpu.registers.get_i();
         let sprite_height = n;
         let sprite_width = 8_u8;
-        //
-        //clear vf
+
+        // Clear vf
         cpu.registers.set_vn(0xF, 0);
 
-        let mut pixel_flipped = false;
+        ppu.render_pixels(vx, vy, i, sprite_height, sprite_width, ram);
 
-        for height in 0..sprite_height {
-            let byte = ram.read_byte(i + height as u16);
-            if ppu.render_pixels(vx, vy, byte, height, sprite_width) {
-                pixel_flipped = true;
-            }
-        }
-
-        if pixel_flipped {
+        if ppu.pixel_flipped {
             cpu.registers.set_vn(0xF, 1);
         } else {
             cpu.registers.set_vn(0xF, 0);
         }
 
-        cpu.debug_draw(ppu);
+        cpu.draw_pixels(ppu);
 
         cpu.program_counter.next();
     }

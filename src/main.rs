@@ -1,4 +1,5 @@
-use std::time::{Instant};
+use std::time::Instant;
+use std::env;
 
 mod cpu;
 mod instruction;
@@ -13,7 +14,14 @@ use machine::Machine;
 use rom::Rom;
 
 fn main() {
-    let rom = Rom::new("roms/INVADERS");
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        panic!("Error: No file path provided.");
+    }
+    let file_path = "roms/".to_owned() + &args[1];
+
+
+    let rom = Rom::build(&file_path).expect("Error reading file.");
     let mut machine = Machine::new();
     machine.load_rom(rom);
 
@@ -25,5 +33,4 @@ fn main() {
             start_time = Instant::now();
         }
     }
-
 }
