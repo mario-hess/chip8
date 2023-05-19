@@ -1,13 +1,14 @@
 use crate::cpu::Cpu;
 use crate::ppu::Ppu;
 use crate::ram::Ram;
+use crate::timer::Timer;
 
 const MASK_LSBIT: u8 = 0b0000_0001;
 
 pub struct Instruction {}
 
 impl Instruction {
-    pub fn exec_0x0(cpu: &mut Cpu, nn: u8, ppu: &mut Ppu) {
+    pub fn exec_0x0(cpu: &mut Cpu, ppu: &mut Ppu, nn: u8) {
         match nn {
             0xEE => {
                 // 00EE
@@ -159,7 +160,7 @@ impl Instruction {
         cpu.program_counter.next();
     }
 
-    pub fn exec_0xd(cpu: &mut Cpu, n: u8, x: u8, y: u8, ram: &mut Ram, ppu: &mut Ppu) {
+    pub fn exec_0xd(cpu: &mut Cpu, ram: &mut Ram, ppu: &mut Ppu, n: u8, x: u8, y: u8) {
         // DXYN
         // Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels
         // and a height of N pixels. Each row of 8 pixels is read as bit-coded
@@ -183,8 +184,6 @@ impl Instruction {
         } else {
             cpu.registers.set_vn(0xF, 0);
         }
-
-        cpu.draw_pixels(ppu);
 
         cpu.program_counter.next();
     }
@@ -219,12 +218,13 @@ impl Instruction {
         }
     }
 
-    pub fn exec_0xf(cpu: &mut Cpu, nn: u8, x: u8, ram: &mut Ram) {
+    pub fn exec_0xf(cpu: &mut Cpu, ram: &mut Ram, timer: &mut Timer, nn: u8, x: u8) {
         match nn {
             0x07 => {
                 // FX07
                 // Sets VX to the value of the delay timer
-                cpu.registers.set_vn(x, cpu.get_delay_timer());
+                let delay_timer = timer.get_delay_timer();
+                cpu.registers.set_vn(x, delay_timer);
                 cpu.program_counter.next();
             }
             0x1E => {
@@ -239,7 +239,8 @@ impl Instruction {
             0x15 => {
                 // FX15
                 // Sets the delay timer to VX
-                cpu.set_delay_timer(cpu.registers.get_vn(x));
+                let vx = cpu.registers.get_vn(x);
+                timer.set_delay_timer(vx);
                 cpu.program_counter.next();
             }
             0x18 => {

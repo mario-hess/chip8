@@ -1,4 +1,3 @@
-use std::time::Instant;
 use std::env;
 
 mod cpu;
@@ -9,6 +8,7 @@ mod program_counter;
 mod ram;
 mod registers;
 mod rom;
+mod timer;
 
 use machine::Machine;
 use rom::Rom;
@@ -25,12 +25,5 @@ fn main() {
     let mut machine = Machine::new();
     machine.load_rom(rom);
 
-    let mut start_time = Instant::now();
-
-    loop {
-        if start_time.elapsed().as_millis() > 2 {
-            machine.run();
-            start_time = Instant::now();
-        }
-    }
+    machine.run();
 }
