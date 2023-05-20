@@ -30,7 +30,7 @@ impl Timer {
             self.delay_timer -= elapsed_ticks as u8;
         }
 
-        self.last_timer_update += Duration::from_millis(elapsed_time.as_millis() as u64);
+        self.last_timer_update = Instant::now();
         self.paused_duration = Duration::default();
 
         self.delay_timer
