@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use crate::cpu::Cpu;
 use crate::ppu::Ppu;
 use crate::ram::Ram;
@@ -35,7 +33,8 @@ impl Machine {
         self.cpu
             .execute_instruction(&mut self.ram, &mut self.ppu, &mut self.timer);
     }
-
+    
+    /*
     pub fn draw_pixels(&mut self) {
         for h in 0..32 {
             for w in 0..64 {
@@ -48,4 +47,5 @@ impl Machine {
             println!();
         }
     }
+    */
 }
