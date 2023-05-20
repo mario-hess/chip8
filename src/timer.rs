@@ -27,7 +27,7 @@ impl Timer {
             0
         } else {
             self.delay_timer -= elapsed_ticks as u8;
-            self.last_timer_update += Duration::from_millis(elapsed_ticks * TICK_DURATION_MS);
+            self.last_timer_update += Duration::from_millis(elapsed_time);
             self.delay_timer
         }
     }
