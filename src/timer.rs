@@ -1,39 +1,32 @@
-use std::time::{Duration, Instant};
 
-const TICK_DURATION_MS: u64 = 16;
+use std::time::Instant;
 
 pub struct Timer {
     delay_timer: u8,
-    last_timer_update: Instant,
+    elapsed_time: Instant,
 }
 
 impl Timer {
     pub fn new() -> Self {
         Self {
             delay_timer: 0,
-            last_timer_update: Instant::now(),
+            elapsed_time: Instant::now(),
         }
     }
 
     pub fn get_delay_timer(&mut self) -> u8 {
-        let current_time = Instant::now();
-        let elapsed_time = current_time
-            .duration_since(self.last_timer_update)
-            .as_millis() as u64;
-        let elapsed_ticks = elapsed_time / TICK_DURATION_MS;
+        let ms_diff = (Instant::now() - self.elapsed_time).as_millis();
+        let ticks = ms_diff / 16;
 
-        if elapsed_ticks >= self.delay_timer as u64 {
-            self.last_timer_update = current_time;
+        if ticks >= self.delay_timer as u128 {
             0
         } else {
-            self.delay_timer -= elapsed_ticks as u8;
-            self.last_timer_update += Duration::from_millis(elapsed_time);
-            self.delay_timer
+            self.delay_timer - ticks as u8
         }
     }
 
     pub fn set_delay_timer(&mut self, value: u8) {
         self.delay_timer = value;
-        self.last_timer_update = Instant::now();
+        self.elapsed_time = Instant::now();
     }
 }
