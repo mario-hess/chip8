@@ -25,7 +25,7 @@ impl Cpu {
         }
     }
 
-    pub fn execute_instruction(&mut self, ram: &mut Ram, ppu: &mut Ppu, timer: &mut Timer) {
+    pub fn execute_instruction(&mut self, ram: &mut Ram, ppu: &mut Ppu, timer: &mut Timer, key_code: u8) {
         // All instructions are 2 bytes long and are stored most-significant-byte first.
         let instruction = ram.get_instruction(self.program_counter.get_value());
 
@@ -56,7 +56,7 @@ impl Cpu {
             0x8 => Instruction::exec_0x8(self, n, x, y),
             0xA => Instruction::exec_0xa(self, addr),
             0xD => Instruction::exec_0xd(self, ram, ppu, n, x, y),
-            0xE => Instruction::exec_0xe(self, nn, x),
+            0xE => Instruction::exec_0xe(self, nn, x, key_code),
             0xF => Instruction::exec_0xf(self, ram, timer, nn, x),
             _ => panic!("Invalid instruction."),
         }

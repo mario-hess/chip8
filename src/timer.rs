@@ -21,14 +21,11 @@ impl Timer {
         let elapsed_ticks = elapsed_time.as_millis() as u64 / TICK_DURATION_MS;
 
         if elapsed_ticks >= self.delay_timer as u64 {
-            self.delay_timer = 0;
+            0
         } else {
-            self.delay_timer -= elapsed_ticks as u8;
+            self.delay_timer - elapsed_ticks as u8
         }
 
-        self.last_timer_update = Instant::now();
-
-        self.delay_timer
     }
 
     pub fn set_delay_timer(&mut self, value: u8) {

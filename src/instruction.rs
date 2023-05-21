@@ -188,7 +188,7 @@ impl Instruction {
         cpu.program_counter.next();
     }
 
-    pub fn exec_0xe(cpu: &mut Cpu, nn: u8, x: u8) {
+    pub fn exec_0xe(cpu: &mut Cpu, nn: u8, x: u8, key_code: u8) {
         match nn {
             0xA1 => {
                 // EXA1
@@ -196,7 +196,8 @@ impl Instruction {
                 // not pressed (usually the next instruction is a jump to skip a code block).
                 let vx = cpu.registers.get_vn(x);
                 // first = key 5
-                if vx == 5 {
+
+                if key_code == vx {
                     cpu.program_counter.next();
                 } else {
                     cpu.program_counter.skip_next();
@@ -208,7 +209,7 @@ impl Instruction {
                 // pressed (usually the next instruction is a jump to skip a code block).
                 let vx = cpu.registers.get_vn(x);
 
-                if vx != 4 && vx != 6 {
+                if key_code == vx {
                     cpu.program_counter.skip_next();
                 } else {
                     cpu.program_counter.next();

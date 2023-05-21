@@ -42,6 +42,8 @@ fn main() {
     let mut canvas = window.into_canvas().build().unwrap();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
+    
+    let mut key_code: u8 = 0;
 
     'running: loop {
         // Handle events...
@@ -52,6 +54,30 @@ fn main() {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
+                Event::KeyDown {
+                    keycode: Some(Keycode::Num4),
+                    ..
+                } => key_code = 4,
+                Event::KeyUp {
+                    keycode: Some(Keycode::Num4),
+                    ..
+                } => key_code = 0,
+                Event::KeyDown {
+                    keycode: Some(Keycode::Num5),
+                    ..
+                } => key_code = 5,
+                Event::KeyUp {
+                    keycode: Some(Keycode::Num5),
+                    ..
+                } => key_code = 0,
+                Event::KeyDown {
+                    keycode: Some(Keycode::Num6),
+                    ..
+                } => key_code = 6,
+                Event::KeyUp {
+                    keycode: Some(Keycode::Num6),
+                    ..
+                } => key_code = 0,
                 _ => {}
             }
         }
@@ -59,7 +85,7 @@ fn main() {
         canvas.clear();
 
         for _ in 0..10 {
-            machine.run();
+            machine.run(key_code);
         }
 
         canvas.set_draw_color(Color::RGB(255, 255, 255));

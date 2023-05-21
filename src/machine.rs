@@ -29,9 +29,9 @@ impl Machine {
         }
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self, keycode: u8) {
         self.cpu
-            .execute_instruction(&mut self.ram, &mut self.ppu, &mut self.timer);
+            .execute_instruction(&mut self.ram, &mut self.ppu, &mut self.timer, keycode);
     }
     
     /*
