@@ -1,5 +1,3 @@
-use sdl2::keyboard::Keycode;
-
 use crate::cpu::Cpu;
 use crate::keyboard::Keyboard;
 use crate::ppu::Ppu;
@@ -199,15 +197,12 @@ impl Instruction {
                 // not pressed (usually the next instruction is a jump to skip a code block).
                 let vx = cpu.registers.get_vn(x);
 
-                let key = match keyboard.key {
-                    Some(Keycode::Num4) => 4,
-                    Some(Keycode::Num5) => 5,
-                    Some(Keycode::Num6) => 6,
-                    _ => 0,
-                };
-
-                if key == vx {
-                    cpu.program_counter.next();
+                if let Some(key) = keyboard.key {
+                    if key == vx {
+                        cpu.program_counter.next();
+                    } else {
+                        cpu.program_counter.skip_next();
+                    }
                 } else {
                     cpu.program_counter.skip_next();
                 }
@@ -218,15 +213,12 @@ impl Instruction {
                 // pressed (usually the next instruction is a jump to skip a code block).
                 let vx = cpu.registers.get_vn(x);
 
-                let key = match keyboard.key {
-                    Some(Keycode::Num4) => 4,
-                    Some(Keycode::Num5) => 5,
-                    Some(Keycode::Num6) => 6,
-                    _ => 0,
-                };
-
-                if key == vx {
-                    cpu.program_counter.skip_next();
+                if let Some(key) = keyboard.key {
+                    if key == vx {
+                        cpu.program_counter.skip_next();
+                    } else {
+                        cpu.program_counter.next();
+                    }
                 } else {
                     cpu.program_counter.next();
                 }

@@ -1,7 +1,6 @@
 use std::env;
 use std::time::Duration;
 
-use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Point;
 
@@ -59,7 +58,7 @@ fn main() {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
 
-    while machine.keyboard.key != Some(Keycode::Escape) {
+    while !machine.keyboard.escape_pressed {
         machine.keyboard.set_key(&mut event_pump);
 
         canvas.set_draw_color(BLACK);
