@@ -44,13 +44,11 @@ impl Cpu {
         // y    - the upper 4 bits of the low byte of the instruction
         let (msb, addr, nn, n, x, y) = self.mask_opcodes(instruction);
 
-        /* debug
         println!("Instruction: {:#X}", instruction);
         println!(
             "msb: {:#X}, addr: {:#X}, nn: {:#X}, n: {:#X}, x: {:#X}, y: {:#X}",
             msb, addr, nn, n, x, y
         );
-        */
 
         match msb {
             0x0 => Instruction::exec_0x0(self, ppu, nn),
