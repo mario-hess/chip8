@@ -53,7 +53,7 @@ fn main() {
         .build()
         .expect("Error building canvas.");
     canvas
-        .set_logical_size(64, 32)
+        .set_logical_size(ppu::SCREEN_WIDTH as u32, ppu::SCREEN_HEIGHT as u32)
         .expect("Error setting logical size.");
 
     let mut event_pump = sdl_context.event_pump().unwrap();
