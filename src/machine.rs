@@ -1,4 +1,5 @@
 use crate::cpu::Cpu;
+use crate::keyboard::Keyboard;
 use crate::ppu::Ppu;
 use crate::ram::Ram;
 use crate::rom::Rom;
@@ -11,6 +12,7 @@ pub struct Machine {
     ram: Ram,
     pub ppu: Ppu,
     timer: Timer,
+    pub keyboard: Keyboard,
 }
 
 impl Machine {
@@ -20,6 +22,7 @@ impl Machine {
             ram: Ram::new(),
             ppu: Ppu::new(),
             timer: Timer::new(),
+            keyboard: Keyboard::new(),
         }
     }
 
@@ -29,23 +32,12 @@ impl Machine {
         }
     }
 
-    pub fn run(&mut self, keycode: u8) {
-        self.cpu
-            .execute_instruction(&mut self.ram, &mut self.ppu, &mut self.timer, keycode);
+    pub fn run(&mut self) {
+        self.cpu.execute_instruction(
+            &mut self.ram,
+            &mut self.ppu,
+            &mut self.timer,
+            &mut self.keyboard,
+        );
     }
-    
-    /*
-    pub fn draw_pixels(&mut self) {
-        for h in 0..32 {
-            for w in 0..64 {
-                if self.ppu.display[h as usize][w as usize] == 0 {
-                    print!(" ");
-                } else {
-                    print!("#");
-                }
-            }
-            println!();
-        }
-    }
-    */
 }

@@ -1,13 +1,13 @@
 use std::env;
 use std::time::Duration;
 
-use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Point;
 
 mod cpu;
 mod instruction;
+mod keyboard;
 mod machine;
 mod ppu;
 mod program_counter;
@@ -34,58 +34,28 @@ fn main() {
     let video_subsystem = sdl_context.video().unwrap();
 
     let window = video_subsystem
-        .window("rust-sdl2 demo", 640, 320)
+        .window("Chip8 Emulator", 640, 320)
         .position_centered()
         .build()
         .unwrap();
 
     let mut canvas = window.into_canvas().build().unwrap();
+    canvas.set_logical_size(64, 32).unwrap();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
-    
-    let mut key_code: u8 = 0;
 
     'running: loop {
-        // Handle events...
-        for event in event_pump.poll_iter() {
-            match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => break 'running,
-                Event::KeyDown {
-                    keycode: Some(Keycode::Num4),
-                    ..
-                } => key_code = 4,
-                Event::KeyUp {
-                    keycode: Some(Keycode::Num4),
-                    ..
-                } => key_code = 0,
-                Event::KeyDown {
-                    keycode: Some(Keycode::Num5),
-                    ..
-                } => key_code = 5,
-                Event::KeyUp {
-                    keycode: Some(Keycode::Num5),
-                    ..
-                } => key_code = 0,
-                Event::KeyDown {
-                    keycode: Some(Keycode::Num6),
-                    ..
-                } => key_code = 6,
-                Event::KeyUp {
-                    keycode: Some(Keycode::Num6),
-                    ..
-                } => key_code = 0,
-                _ => {}
-            }
+        machine.keyboard.set_key(&mut event_pump);
+
+        if machine.keyboard.key == Some(Keycode::Escape) {
+            break 'running;
         }
+
         canvas.set_draw_color(Color::RGB(0, 0, 0));
         canvas.clear();
 
         for _ in 0..10 {
-            machine.run(key_code);
+            machine.run();
         }
 
         canvas.set_draw_color(Color::RGB(255, 255, 255));
@@ -99,11 +69,8 @@ fn main() {
                 }
             }
         }
-        canvas.set_logical_size(64, 32).unwrap();
 
         canvas.present();
-
-        // machine.draw_pixels();
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }

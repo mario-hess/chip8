@@ -1,4 +1,7 @@
+use sdl2::keyboard::Keycode;
+
 use crate::cpu::Cpu;
+use crate::keyboard::Keyboard;
 use crate::ppu::Ppu;
 use crate::ram::Ram;
 use crate::timer::Timer;
@@ -188,16 +191,22 @@ impl Instruction {
         cpu.program_counter.next();
     }
 
-    pub fn exec_0xe(cpu: &mut Cpu, nn: u8, x: u8, key_code: u8) {
+    pub fn exec_0xe(cpu: &mut Cpu, nn: u8, x: u8, keyboard: &mut Keyboard) {
         match nn {
             0xA1 => {
                 // EXA1
                 // Skips the next instruction if the key stored in VX is
                 // not pressed (usually the next instruction is a jump to skip a code block).
                 let vx = cpu.registers.get_vn(x);
-                // first = key 5
 
-                if key_code == vx {
+                let key = match keyboard.key {
+                    Some(Keycode::Num4) => 4,
+                    Some(Keycode::Num5) => 5,
+                    Some(Keycode::Num6) => 6,
+                    _ => 0,
+                };
+
+                if key == vx {
                     cpu.program_counter.next();
                 } else {
                     cpu.program_counter.skip_next();
@@ -209,7 +218,14 @@ impl Instruction {
                 // pressed (usually the next instruction is a jump to skip a code block).
                 let vx = cpu.registers.get_vn(x);
 
-                if key_code == vx {
+                let key = match keyboard.key {
+                    Some(Keycode::Num4) => 4,
+                    Some(Keycode::Num5) => 5,
+                    Some(Keycode::Num6) => 6,
+                    _ => 0,
+                };
+
+                if key == vx {
                     cpu.program_counter.skip_next();
                 } else {
                     cpu.program_counter.next();
