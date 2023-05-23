@@ -18,33 +18,57 @@ impl Keyboard {
                 | Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
-                } => self.key = Some(Keycode::Escape),
+                } => {
+                    if !self.key_pressed() {
+                        self.key = Some(Keycode::Escape)
+                    }
+                }
                 Event::KeyDown {
                     keycode: Some(Keycode::Num4),
                     ..
-                } => self.key = Some(Keycode::Num4),
+                } => {
+                    if !self.key_pressed() {
+                        self.key = Some(Keycode::Num4)
+                    }
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Num5),
+                    ..
+                } => {
+                    if !self.key_pressed() {
+                        self.key = Some(Keycode::Num5)
+                    }
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Num6),
+                    ..
+                } => {
+                    if !self.key_pressed() {
+                        self.key = Some(Keycode::Num6)
+                    }
+                }
                 Event::KeyUp {
                     keycode: Some(Keycode::Num4),
                     ..
-                } => self.key = None,
-                Event::KeyDown {
+                }
+                | Event::KeyUp {
                     keycode: Some(Keycode::Num5),
                     ..
-                } => self.key = Some(Keycode::Num5),
-                Event::KeyUp {
-                    keycode: Some(Keycode::Num5),
-                    ..
-                } => self.key = None,
-                Event::KeyDown {
+                }
+                | Event::KeyUp {
                     keycode: Some(Keycode::Num6),
                     ..
-                } => self.key = Some(Keycode::Num6),
-                Event::KeyUp {
-                    keycode: Some(Keycode::Num6),
-                    ..
-                } => self.key = None,
+                } => {
+                    if self.key_pressed() {
+                        self.key = None
+                    }
+                }
                 _ => {}
             };
         }
+    }
+
+    pub fn key_pressed(&self) -> bool {
+        Option::is_some(&self.key)
     }
 }

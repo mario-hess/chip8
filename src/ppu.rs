@@ -1,7 +1,7 @@
 use crate::ram::Ram;
 
-const SCREEN_WIDTH: usize = 64;
-const SCREEN_HEIGHT: usize = 32;
+pub const SCREEN_WIDTH: usize = 64;
+pub const SCREEN_HEIGHT: usize = 32;
 const MASK_MSBIT: u8 = 0b1000_0000;
 
 pub struct Ppu {

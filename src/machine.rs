@@ -32,7 +32,7 @@ impl Machine {
         }
     }
 
-    pub fn run(&mut self) {
+    pub fn run_instruction(&mut self) {
         self.cpu.execute_instruction(
             &mut self.ram,
             &mut self.ppu,

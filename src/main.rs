@@ -19,6 +19,10 @@ mod timer;
 use machine::Machine;
 use rom::Rom;
 
+const BLACK: Color = Color::RGB(0, 0, 0);
+const WHITE: Color = Color::RGB(255, 255, 255);
+const FPS_RATE: u32 = 1_000_000_000u32 / 60;
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
@@ -30,48 +34,56 @@ fn main() {
     let mut machine = Machine::new();
     machine.load_rom(rom);
 
-    let sdl_context = sdl2::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
+    let sdl_context = sdl2::init().expect("Error initializing SDL.");
+    let video_subsystem = sdl_context
+        .video()
+        .expect("Error initializing VideoSubSystem");
 
     let window = video_subsystem
-        .window("Chip8 Emulator", 640, 320)
+        .window(
+            "Chip8 Emulator",
+            (ppu::SCREEN_WIDTH * 10) as u32,
+            (ppu::SCREEN_HEIGHT * 10) as u32,
+        )
         .position_centered()
         .build()
-        .unwrap();
+        .expect("Error building window.");
 
-    let mut canvas = window.into_canvas().build().unwrap();
-    canvas.set_logical_size(64, 32).unwrap();
+    let mut canvas = window
+        .into_canvas()
+        .build()
+        .expect("Error building canvas.");
+    canvas
+        .set_logical_size(64, 32)
+        .expect("Error setting logical size.");
 
     let mut event_pump = sdl_context.event_pump().unwrap();
 
-    'running: loop {
+    while machine.keyboard.key != Some(Keycode::Escape) {
         machine.keyboard.set_key(&mut event_pump);
 
-        if machine.keyboard.key == Some(Keycode::Escape) {
-            break 'running;
-        }
-
-        canvas.set_draw_color(Color::RGB(0, 0, 0));
+        canvas.set_draw_color(BLACK);
         canvas.clear();
 
+        // Chip8 runs roughly 10 instructions per frame
         for _ in 0..10 {
-            machine.run();
+            machine.run_instruction();
         }
 
-        canvas.set_draw_color(Color::RGB(255, 255, 255));
+        canvas.set_draw_color(WHITE);
 
-        for height in 0..32 {
-            for width in 0..64 {
+        for height in 0..ppu::SCREEN_HEIGHT {
+            for width in 0..ppu::SCREEN_WIDTH {
                 if machine.ppu.display[height][width] == 1 {
                     canvas
                         .draw_point(Point::new(width as i32, height as i32))
-                        .unwrap();
+                        .expect("Error drawing pixel.");
                 }
             }
         }
 
         canvas.present();
 
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        ::std::thread::sleep(Duration::new(0, FPS_RATE));
     }
 }
