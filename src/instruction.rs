@@ -7,6 +7,7 @@ use crate::ram::Ram;
 use crate::timer::Timer;
 
 const MASK_LSBIT: u8 = 0b0000_0001;
+const MASK_MSBIT: u8 = 0b1000_0000;
 
 pub struct Instruction {}
 
@@ -67,6 +68,19 @@ impl Instruction {
         }
     }
 
+    pub fn exec_0x5(cpu: &mut Cpu, x: u8, y: u8) {
+        // Skips the next instruction if VX equals VY (usually the next
+        // instruction is a jump to skip a code block).
+        let vx = cpu.registers.get_vn(x);
+        let vy = cpu.registers.get_vn(y);
+
+        if vx == vy {
+            cpu.program_counter.skip_next();
+        } else {
+            cpu.program_counter.next();
+        }
+    }
+
     pub fn exec_0x6(cpu: &mut Cpu, nn: u8, x: u8) {
         // 6XNN
         // Sets VX to NN
@@ -90,6 +104,16 @@ impl Instruction {
                 // Sets VX to the value of VY
                 let vy = cpu.registers.get_vn(y);
                 cpu.registers.set_vn(x, vy);
+                cpu.program_counter.next();
+            }
+            0x1 => {
+                // Sets VX to VX or VY. (bitwise OR operation)
+                let vx = cpu.registers.get_vn(x);
+                let vy = cpu.registers.get_vn(y);
+
+                let result = vx | vy;
+                cpu.registers.set_vn(x, result);
+
                 cpu.program_counter.next();
             }
             0x2 => {
@@ -129,7 +153,8 @@ impl Instruction {
                 // VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there is not
                 let vx = cpu.registers.get_vn(x);
                 let vy = cpu.registers.get_vn(y);
-                let result = vx as i8 - vy as i8;
+                let result = vx as i16 - vy as i16;
+
                 cpu.registers.set_vn(x, result as u8);
                 if result < 0 {
                     cpu.registers.set_vn(0xF, 0);
@@ -153,7 +178,46 @@ impl Instruction {
 
                 cpu.program_counter.next();
             }
+            0x7 => {
+                let vx = cpu.registers.get_vn(x);
+                let vy = cpu.registers.get_vn(y);
+                let result = vy as i16 - vx as i16;
+
+                cpu.registers.set_vn(x, result as u8);
+                if result < 0 {
+                    cpu.registers.set_vn(0xF, 0);
+                } else {
+                    cpu.registers.set_vn(0xF, 1);
+                }
+                cpu.program_counter.next();
+            }
+            0xE => {
+                // Stores the most significant bit of VX in VF and then shifts
+                // VX to the left by 1.
+                let vx = cpu.registers.get_vn(x);
+                let shifted_vx = vx << 1;
+
+                cpu.registers.set_vn(x, shifted_vx);
+
+                let msb = vx & MASK_MSBIT;
+                cpu.registers.set_vn(0xF, msb);
+
+                cpu.program_counter.next();
+            }
             _ => panic!("Invalid 0x8xxn instruction"),
+        }
+    }
+
+    pub fn exec_0x9(cpu: &mut Cpu, x: u8, y: u8) {
+        // Skips the next instruction if VX does not equal VY (usually the next
+        // instruction is a jump to skip a code block).
+        let vx = cpu.registers.get_vn(x);
+        let vy = cpu.registers.get_vn(y);
+
+        if vx != vy {
+            cpu.program_counter.skip_next();
+        } else {
+            cpu.program_counter.next();
         }
     }
 
@@ -166,14 +230,14 @@ impl Instruction {
 
     pub fn exec_0xc(cpu: &mut Cpu, nn: u8, x: u8) {
         // Sets VX to the result of a bitwise and operation on a random number
-        // (Typically: 0 to 255) and NN. 
+        // (Typically: 0 to 255) and NN.
 
         let mut rng = rand::thread_rng();
         let rng = rng.gen_range(0..=255);
 
         let result = rng & nn;
         cpu.registers.set_vn(x, result);
-        
+
         cpu.program_counter.next();
     }
 
@@ -294,13 +358,26 @@ impl Instruction {
 
                 cpu.program_counter.next();
             }
+            0x55 => {
+                // Stores from V0 to VX (including VX) in memory, starting at address I.
+                // The offset from I is increased by 1 for each value written, but I
+                // itself is left unmodified.
+                let i_reg = cpu.registers.get_i();
+                for i in 0..=x {
+                    let vn = cpu.registers.get_vn(i);
+                    ram.write_byte(i_reg + i as u16, vn);
+                }
+
+                cpu.program_counter.next();
+            }
             0x65 => {
                 // FX65
                 // Fills from V0 to VX (including VX) with values from memory,
                 // starting at address I. The offset from I is increased by 1 for
                 // each value read
+
+                let i_reg = cpu.registers.get_i();
                 for i in 0..=x {
-                    let i_reg = cpu.registers.get_i();
                     cpu.registers.set_vn(i, ram.read_byte(i_reg + i as u16));
                     cpu.registers.set_i(i_reg + 1);
                 }
