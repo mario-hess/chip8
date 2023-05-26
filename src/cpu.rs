@@ -32,6 +32,8 @@ impl Cpu {
         ppu: &mut Ppu,
         timer: &mut Timer,
         keyboard: &mut Keyboard,
+        shift_quirk: bool,
+        jump_quirk: bool,
     ) {
         // All instructions are 2 bytes long and are stored most-significant-byte first.
         let instruction = ram.get_instruction(self.program_counter.get_value());
@@ -59,13 +61,14 @@ impl Cpu {
             0x5 => Instruction::exec_0x5(self, x, y),
             0x6 => Instruction::exec_0x6(self, nn, x),
             0x7 => Instruction::exec_0x7(self, nn, x),
-            0x8 => Instruction::exec_0x8(self, n, x, y),
+            0x8 => Instruction::exec_0x8(self, n, x, y, shift_quirk),
             0x9 => Instruction::exec_0x9(self, x, y),
             0xA => Instruction::exec_0xa(self, addr),
+            0xB => Instruction::exec_0xb(self, addr, x, jump_quirk),
             0xC => Instruction::exec_0xc(self, nn, x),
             0xD => Instruction::exec_0xd(self, ram, ppu, n, x, y),
             0xE => Instruction::exec_0xe(self, nn, x, keyboard),
-            0xF => Instruction::exec_0xf(self, ram, timer, nn, x),
+            0xF => Instruction::exec_0xf(self, ram, timer, keyboard, nn, x),
             _ => panic!("Invalid instruction."),
         }
     }

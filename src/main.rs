@@ -23,14 +23,24 @@ const WHITE: Color = Color::RGB(255, 255, 255);
 const FPS_RATE: u32 = 1_000_000_000u32 / 60;
 
 fn main() {
+    let mut shift_quirk = false;
+    let mut jump_quirk = false;
+
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
         panic!("Error: No file path provided.");
     }
+    if args.len() > 2 && &args[2] == "shift_quirk" {
+        shift_quirk = true;
+    }
+    if args.len() > 3 && &args[3] == "jump_quirk" {
+        jump_quirk = true;
+    }
+
     let file_path = "roms/".to_owned() + &args[1];
 
     let rom = Rom::build(&file_path).expect("Error reading file.");
-    let mut machine = Machine::new();
+    let mut machine = Machine::new(shift_quirk, jump_quirk);
     machine.load_rom(rom);
 
     let sdl_context = sdl2::init().expect("Error initializing SDL.");

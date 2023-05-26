@@ -98,7 +98,7 @@ impl Instruction {
         cpu.program_counter.next();
     }
 
-    pub fn exec_0x8(cpu: &mut Cpu, n: u8, x: u8, y: u8) {
+    pub fn exec_0x8(cpu: &mut Cpu, n: u8, x: u8, y: u8, shift_quirk: bool) {
         match n {
             0x0 => {
                 // 8XY0
@@ -171,13 +171,24 @@ impl Instruction {
                 // 8XY6
                 // Store the value of register VY shifted right one bit in register VX
                 // Set register VF to the least significant bit prior to the shift.
-                let vx = cpu.registers.get_vn(x);
-                let shifted_vx = vx >> 1;
 
-                cpu.registers.set_vn(x, shifted_vx);
+                if shift_quirk {
+                    let vx = cpu.registers.get_vn(x);
+                    let shifted_vx = vx >> 1;
 
-                let lsb = vx & MASK_LSBIT;
-                cpu.registers.set_vn(0xF, lsb);
+                    cpu.registers.set_vn(x, shifted_vx);
+
+                    let lsb = vx & MASK_LSBIT;
+                    cpu.registers.set_vn(0xF, lsb);
+                } else {
+                    let vy = cpu.registers.get_vn(y);
+                    let shifted_vy = vy >> 1;
+
+                    cpu.registers.set_vn(x, shifted_vy);
+
+                    let lsb = vy & MASK_LSBIT;
+                    cpu.registers.set_vn(0xF, lsb);
+                }
 
                 cpu.program_counter.next();
             }
@@ -199,15 +210,25 @@ impl Instruction {
             }
             0xE => {
                 // 8XYE
-                // Stores the most significant bit of VX in VF and then shifts
-                // VX to the left by 1.
-                let vx = cpu.registers.get_vn(x);
-                let shifted_vx = vx << 1;
+                // Store the value of register VY shifted left one bit in register VX
+                // Set register VF to the most significant bit prior to the shift
+                if shift_quirk {
+                    let vx = cpu.registers.get_vn(x);
+                    let shifted_vx = vx << 1;
 
-                cpu.registers.set_vn(x, shifted_vx);
+                    cpu.registers.set_vn(x, shifted_vx);
 
-                let msb = vx & MASK_MSBIT;
-                cpu.registers.set_vn(0xF, msb);
+                    let msb = (vx & MASK_MSBIT) >> 7;
+                    cpu.registers.set_vn(0xF, msb);
+                } else {
+                    let vy = cpu.registers.get_vn(y);
+                    let shifted_vy = vy << 1;
+
+                    cpu.registers.set_vn(x, shifted_vy);
+
+                    let msb = (vy & MASK_MSBIT) >> 7;
+                    cpu.registers.set_vn(0xF, msb);
+                }
 
                 cpu.program_counter.next();
             }
@@ -234,6 +255,18 @@ impl Instruction {
         // Sets I to the address NNN.
         cpu.registers.set_i(addr);
         cpu.program_counter.next();
+    }
+
+    pub fn exec_0xb(cpu: &mut Cpu, addr: u16, x: u8, jump_quirk: bool) {
+        // BNNN
+        // Jumps to the address NNN plus V0.
+        if jump_quirk {
+            let vx = cpu.registers.get_vn(x);
+            cpu.program_counter.set_value(addr + vx as u16);
+        } else {
+            let v0 = cpu.registers.get_vn(0);
+            cpu.program_counter.set_value(addr + v0 as u16);
+        }
     }
 
     pub fn exec_0xc(cpu: &mut Cpu, nn: u8, x: u8) {
@@ -314,8 +347,24 @@ impl Instruction {
         }
     }
 
-    pub fn exec_0xf(cpu: &mut Cpu, ram: &mut Ram, timer: &mut Timer, nn: u8, x: u8) {
+    pub fn exec_0xf(
+        cpu: &mut Cpu,
+        ram: &mut Ram,
+        timer: &mut Timer,
+        keyboard: &mut Keyboard,
+        nn: u8,
+        x: u8,
+    ) {
         match nn {
+            0x0A => {
+                // FX0A
+                // A key press is awaited, and then stored in VX (blocking operation, all
+                // instruction halted until next key event).
+                if let Some(key) = keyboard.key {
+                    cpu.registers.set_vn(x, key);
+                    cpu.program_counter.next();
+                }
+            }
             0x07 => {
                 // FX07
                 // Sets VX to the value of the delay timer.
