@@ -60,6 +60,7 @@ impl Cpu {
             0x7 => Instruction::exec_0x7(self, nn, x),
             0x8 => Instruction::exec_0x8(self, n, x, y),
             0xA => Instruction::exec_0xa(self, addr),
+            0xC => Instruction::exec_0xc(self, nn, x),
             0xD => Instruction::exec_0xd(self, ram, ppu, n, x, y),
             0xE => Instruction::exec_0xe(self, nn, x, keyboard),
             0xF => Instruction::exec_0xf(self, ram, timer, nn, x),

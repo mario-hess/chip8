@@ -1,3 +1,5 @@
+use rand::prelude::*;
+
 use crate::cpu::Cpu;
 use crate::keyboard::Keyboard;
 use crate::ppu::Ppu;
@@ -140,6 +142,7 @@ impl Instruction {
                 // 8XY6
                 // Store the value of register VY shifted right one bit in register VX
                 // Set register VF to the least significant bit prior to the shift
+                // shifted the value in the register VY and stored the result in VX
                 let vx = cpu.registers.get_vn(x);
                 let shifted_vx = vx >> 1;
 
@@ -158,6 +161,19 @@ impl Instruction {
         // ANNN
         // Sets I to the address NNN
         cpu.registers.set_i(addr);
+        cpu.program_counter.next();
+    }
+
+    pub fn exec_0xc(cpu: &mut Cpu, nn: u8, x: u8) {
+        // Sets VX to the result of a bitwise and operation on a random number
+        // (Typically: 0 to 255) and NN. 
+
+        let mut rng = rand::thread_rng();
+        let rng = rng.gen_range(0..=255);
+
+        let result = rng & nn;
+        cpu.registers.set_vn(x, result);
+        
         cpu.program_counter.next();
     }
 
@@ -255,6 +271,27 @@ impl Instruction {
             0x18 => {
                 // FX18
                 // Sets the sound timer to VX
+                cpu.program_counter.next();
+            }
+            0x29 => {
+                // Sets I to the location of the sprite for the character in VX.
+                // Characters 0-F (in hexadecimal) are represented by a 4x5 font.
+                let vx = cpu.registers.get_vn(x);
+                cpu.registers.set_i(vx as u16 * 5);
+                cpu.program_counter.next();
+            }
+            0x33 => {
+                let vx = cpu.registers.get_vn(x);
+                let i = cpu.registers.get_i();
+
+                let hundreth = vx / 100;
+                let tenth = (vx / 10) % 10;
+                let first = vx % 10;
+
+                ram.write_byte(i, hundreth);
+                ram.write_byte(i + 1, tenth);
+                ram.write_byte(i + 2, first);
+
                 cpu.program_counter.next();
             }
             0x65 => {
