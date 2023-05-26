@@ -1,4 +1,4 @@
-use rand::prelude::*;
+use rand::Rng;
 
 use crate::cpu::Cpu;
 use crate::keyboard::Keyboard;
@@ -16,13 +16,13 @@ impl Instruction {
         match nn {
             0xEE => {
                 // 00EE
-                // Returns from a subroutine
+                // Returns from a subroutine.
                 let value = cpu.registers.stack_pop();
                 cpu.program_counter.set_value(value);
             }
             0xE0 => {
                 // 00E0
-                // Clears the screen
+                // Clears the screen.
                 ppu.clear();
                 cpu.program_counter.next();
             }
@@ -32,13 +32,13 @@ impl Instruction {
 
     pub fn exec_0x1(cpu: &mut Cpu, addr: u16) {
         // 1NNN
-        // Jumps to address NNN
+        // Jumps to address NNN.
         cpu.program_counter.set_value(addr);
     }
 
     pub fn exec_0x2(cpu: &mut Cpu, addr: u16) {
         // 2NNN
-        // Calls subroutine at NNN
+        // Calls subroutine at NNN.
         let value = cpu.program_counter.get_value() + 2;
         cpu.registers.stack_push(value);
         cpu.program_counter.set_value(addr);
@@ -58,7 +58,7 @@ impl Instruction {
 
     pub fn exec_0x4(cpu: &mut Cpu, nn: u8, x: u8) {
         // 4XNN
-        // Skips the next instruction if VX does not equal NN
+        // Skips the next instruction if VX does not equal NN.
         // (usually the next instruction is a jump to skip a code block)
         let vx = cpu.registers.get_vn(x);
         if vx != nn {
@@ -69,6 +69,7 @@ impl Instruction {
     }
 
     pub fn exec_0x5(cpu: &mut Cpu, x: u8, y: u8) {
+        // 5XY0
         // Skips the next instruction if VX equals VY (usually the next
         // instruction is a jump to skip a code block).
         let vx = cpu.registers.get_vn(x);
@@ -83,14 +84,14 @@ impl Instruction {
 
     pub fn exec_0x6(cpu: &mut Cpu, nn: u8, x: u8) {
         // 6XNN
-        // Sets VX to NN
+        // Sets VX to NN.
         cpu.registers.set_vn(x, nn);
         cpu.program_counter.next();
     }
 
     pub fn exec_0x7(cpu: &mut Cpu, nn: u8, x: u8) {
         // 7XNN
-        // Adds NN to VX (carry flag is not changed)
+        // Adds NN to VX. (carry flag is not changed)
         let vx = cpu.registers.get_vn(x);
         let result = vx.wrapping_add(nn);
         cpu.registers.set_vn(x, result);
@@ -101,12 +102,13 @@ impl Instruction {
         match n {
             0x0 => {
                 // 8XY0
-                // Sets VX to the value of VY
+                // Sets VX to the value of VY.
                 let vy = cpu.registers.get_vn(y);
                 cpu.registers.set_vn(x, vy);
                 cpu.program_counter.next();
             }
             0x1 => {
+                // 8XY1
                 // Sets VX to VX or VY. (bitwise OR operation)
                 let vx = cpu.registers.get_vn(x);
                 let vy = cpu.registers.get_vn(y);
@@ -127,7 +129,7 @@ impl Instruction {
             }
             0x3 => {
                 // 8XY3
-                // Sets VX to VX xor VY
+                // Sets VX to VX xor VY.
                 let vx = cpu.registers.get_vn(x);
                 let vy = cpu.registers.get_vn(y);
                 let result = vx ^ vy;
@@ -136,7 +138,8 @@ impl Instruction {
             }
             0x4 => {
                 // 8XY4
-                // Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there is not
+                // Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when
+                // there is not.
                 let vx = cpu.registers.get_vn(x);
                 let vy = cpu.registers.get_vn(y);
                 let result = vx as u16 + vy as u16;
@@ -150,7 +153,8 @@ impl Instruction {
             }
             0x5 => {
                 // 8XY5
-                // VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there is not
+                // VY is subtracted from VX. VF is set to 0 when there's a borrow,
+                // and 1 when there is not.
                 let vx = cpu.registers.get_vn(x);
                 let vy = cpu.registers.get_vn(y);
                 let result = vx as i16 - vy as i16;
@@ -166,8 +170,7 @@ impl Instruction {
             0x6 => {
                 // 8XY6
                 // Store the value of register VY shifted right one bit in register VX
-                // Set register VF to the least significant bit prior to the shift
-                // shifted the value in the register VY and stored the result in VX
+                // Set register VF to the least significant bit prior to the shift.
                 let vx = cpu.registers.get_vn(x);
                 let shifted_vx = vx >> 1;
 
@@ -179,6 +182,9 @@ impl Instruction {
                 cpu.program_counter.next();
             }
             0x7 => {
+                // 8XY7
+                // Sets VX to VY minus VX. VF is set to 0 when
+                // there's a borrow, and 1 when there is not.
                 let vx = cpu.registers.get_vn(x);
                 let vy = cpu.registers.get_vn(y);
                 let result = vy as i16 - vx as i16;
@@ -192,6 +198,7 @@ impl Instruction {
                 cpu.program_counter.next();
             }
             0xE => {
+                // 8XYE
                 // Stores the most significant bit of VX in VF and then shifts
                 // VX to the left by 1.
                 let vx = cpu.registers.get_vn(x);
@@ -209,6 +216,7 @@ impl Instruction {
     }
 
     pub fn exec_0x9(cpu: &mut Cpu, x: u8, y: u8) {
+        // 9XY0
         // Skips the next instruction if VX does not equal VY (usually the next
         // instruction is a jump to skip a code block).
         let vx = cpu.registers.get_vn(x);
@@ -223,17 +231,16 @@ impl Instruction {
 
     pub fn exec_0xa(cpu: &mut Cpu, addr: u16) {
         // ANNN
-        // Sets I to the address NNN
+        // Sets I to the address NNN.
         cpu.registers.set_i(addr);
         cpu.program_counter.next();
     }
 
     pub fn exec_0xc(cpu: &mut Cpu, nn: u8, x: u8) {
+        // CXNN
         // Sets VX to the result of a bitwise and operation on a random number
         // (Typically: 0 to 255) and NN.
-
-        let mut rng = rand::thread_rng();
-        let rng = rng.gen_range(0..=255);
+        let rng = rand::thread_rng().gen_range(0..=255);
 
         let result = rng & nn;
         cpu.registers.set_vn(x, result);
@@ -311,14 +318,14 @@ impl Instruction {
         match nn {
             0x07 => {
                 // FX07
-                // Sets VX to the value of the delay timer
+                // Sets VX to the value of the delay timer.
                 let delay_timer = timer.get_delay_timer();
                 cpu.registers.set_vn(x, delay_timer);
                 cpu.program_counter.next();
             }
             0x1E => {
                 // FX1E
-                // Adds VX to I. VF is not affected
+                // Adds VX to I. VF is not affected.
                 let vx = cpu.registers.get_vn(x);
                 let i = cpu.registers.get_i();
                 let result = vx as u16 + i;
@@ -327,17 +334,18 @@ impl Instruction {
             }
             0x15 => {
                 // FX15
-                // Sets the delay timer to VX
+                // Sets the delay timer to VX.
                 let vx = cpu.registers.get_vn(x);
                 timer.set_delay_timer(vx);
                 cpu.program_counter.next();
             }
             0x18 => {
                 // FX18
-                // Sets the sound timer to VX
+                // Sets the sound timer to VX.
                 cpu.program_counter.next();
             }
             0x29 => {
+                // FX29
                 // Sets I to the location of the sprite for the character in VX.
                 // Characters 0-F (in hexadecimal) are represented by a 4x5 font.
                 let vx = cpu.registers.get_vn(x);
@@ -345,6 +353,10 @@ impl Instruction {
                 cpu.program_counter.next();
             }
             0x33 => {
+                // FX33
+                // Stores the binary-coded decimal representation of VX,
+                // with the hundreds digit in memory at location in I,
+                // the tens digit at location I+1, and the ones digit at location I+2.
                 let vx = cpu.registers.get_vn(x);
                 let i = cpu.registers.get_i();
 
@@ -359,6 +371,7 @@ impl Instruction {
                 cpu.program_counter.next();
             }
             0x55 => {
+                // FX55
                 // Stores from V0 to VX (including VX) in memory, starting at address I.
                 // The offset from I is increased by 1 for each value written, but I
                 // itself is left unmodified.
@@ -374,8 +387,7 @@ impl Instruction {
                 // FX65
                 // Fills from V0 to VX (including VX) with values from memory,
                 // starting at address I. The offset from I is increased by 1 for
-                // each value read
-
+                // each value read.
                 let i_reg = cpu.registers.get_i();
                 for i in 0..=x {
                     cpu.registers.set_vn(i, ram.read_byte(i_reg + i as u16));
