@@ -35,16 +35,23 @@ impl Ppu {
         ram: &mut Ram,
     ) {
         for height in 0..sprite_height {
+            let mut x = vx as usize % SCREEN_WIDTH;
+            let y = (vy + height) as usize % SCREEN_HEIGHT;
+
             let mut byte = ram.read_byte(i + height as u16);
 
-            let mut x = vx as usize;
-            let mut y = (vy + height) as usize;
+            if y > SCREEN_HEIGHT - 1 {
+                // quit itself if exceed the bottom
+                break;
+            }
 
             self.pixel_flipped = false;
 
             for _ in 0..sprite_width {
-                x %= SCREEN_WIDTH;
-                y %= SCREEN_HEIGHT;
+                if x > SCREEN_WIDTH - 1 {
+                    // continue to skip any pixels off the side
+                    continue;
+                }
 
                 let bit = (byte & MASK_MSBIT) >> 7;
 
