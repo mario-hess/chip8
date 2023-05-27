@@ -34,22 +34,19 @@ impl Ppu {
         sprite_width: u8,
         ram: &mut Ram,
     ) {
+        self.pixel_flipped = false;
+        let mut y = vy as usize % SCREEN_HEIGHT;
+
         for height in 0..sprite_height {
-            let mut x = vx as usize % SCREEN_WIDTH;
-            let y = (vy + height) as usize % SCREEN_HEIGHT;
-
             let mut byte = ram.read_byte(i + height as u16);
+            let mut x = vx as usize % SCREEN_WIDTH;
 
-            if y > SCREEN_HEIGHT - 1 {
-                // quit itself if exceed the bottom
+            if y >= SCREEN_HEIGHT {
                 break;
             }
 
-            self.pixel_flipped = false;
-
             for _ in 0..sprite_width {
-                if x > SCREEN_WIDTH - 1 {
-                    // continue to skip any pixels off the side
+                if x >= SCREEN_WIDTH {
                     continue;
                 }
 
@@ -67,6 +64,7 @@ impl Ppu {
                 x += 1;
                 byte <<= 1;
             }
+            y += 1;
         }
     }
 }
